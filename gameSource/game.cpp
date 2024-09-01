@@ -293,7 +293,7 @@ static char *windowTitle = NULL;
 const char *getWindowTitle() {
 	if (windowTitle == NULL) {
 		char title[256] = "";
-		snprintf(title, sizeof(title), "YumHack v%d | by Graped", YumHackVersion);
+		snprintf(title, sizeof(title), "YumHack v%d | by Graped", YumHackVersion); // Modify window title - Graped
 		windowTitle = strdup(title);
 	}
     return windowTitle;
