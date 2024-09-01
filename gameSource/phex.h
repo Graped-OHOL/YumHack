@@ -158,7 +158,7 @@ public:
 		double recBckgr[4];
 		
 		PhexTitleText() {
-			phex.str = "P H E X";
+			phex.str = "8==DO: Tux Sux :)";
 			phex.scale = 2;
 			status.scale = 0.9;
 		}
