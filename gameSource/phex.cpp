@@ -206,11 +206,6 @@ void Phex::init() {
 	recHotKeyInfo[1] = recLineBelowTitle[1]-0.03;
 	recHotKeyInfo[2] = recBckgr[2];
 	recHotKeyInfo[3] = recLineBelowTitle[1];
-	textHotKeyInfo.str = "press ";
-	textHotKeyInfo.str += (char)HetuwMod::charKey_Phex;
-	textHotKeyInfo.str += " or CTRL+";
-	textHotKeyInfo.str += (char)HetuwMod::charKey_Phex;
-	textHotKeyInfo.str += " to toggle";
 	textHotKeyInfo.getWidthHeight();
 	textHotKeyInfo.setTextPosToCenter(recHotKeyInfo);
 	
@@ -1052,10 +1047,18 @@ void Phex::joinChannel(std::string inChannelName) {
 }
 
 void Phex::sendServerLife(int life) {
+
+	int fakelife = life+10; // Calculate fake life - Graped
+
 	std::string msg = "SERVER_LIFE ";
 	msg += std::string(HetuwMod::serverIP)+" ";
-	msg += std::to_string(life+10); // Spoof LifeID - Graped
+	msg += std::to_string(fakelife); // Spoof LifeID - Graped
+
+	textHotKeyInfo.str = "LifeID : ";
+	textHotKeyInfo.str += std::to_string(fakelife); // Display LifeID in phex window (replaces "Press * to....."")
+
 	tcp.send(msg);
+
 }
 
 void Phex::draw() {
