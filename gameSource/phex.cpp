@@ -1055,7 +1055,7 @@ void Phex::sendServerLife(int life) {
 	msg += std::to_string(fakelife); // Spoof LifeID - Graped
 
 	textHotKeyInfo.str = "LifeID : ";
-	textHotKeyInfo.str += std::to_string(fakelife); // Display LifeID in phex window (replaces "Press * to....."")
+	textHotKeyInfo.str += std::to_string(fakelife); // Display LifeID in phex window (replaces "Press * to....."") - Graped
 
 	tcp.send(msg);
 
