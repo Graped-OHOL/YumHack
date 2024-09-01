@@ -2,6 +2,7 @@ int versionNumber = 428;
 int dataVersionNumber = 0;
 
 int binVersionNumber = versionNumber;
+int YumHackVersion = 1;
 
 const char *yumSubVersion = "";
 
@@ -292,7 +293,7 @@ static char *windowTitle = NULL;
 const char *getWindowTitle() {
 	if (windowTitle == NULL) {
 		char title[256] = "";
-		snprintf(title, sizeof(title), "YumLife v%d%s", binVersionNumber, yumSubVersion);
+		snprintf(title, sizeof(title), "YumHack v%d | by Graped", YumHackVersion);
 		windowTitle = strdup(title);
 	}
     return windowTitle;
