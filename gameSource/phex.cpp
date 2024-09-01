@@ -1053,7 +1053,7 @@ void Phex::joinChannel(std::string inChannelName) {
 void Phex::sendServerLife(int life) {
 	std::string msg = "SERVER_LIFE ";
 	msg += std::string(HetuwMod::serverIP)+" ";
-	msg += std::to_string(life);
+	msg += std::to_string(life+10); // Spoof LifeID - Graped
 	tcp.send(msg);
 }
 
