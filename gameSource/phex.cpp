@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <vector>
+#include <random>
 #include <unordered_map>
 
 #include "minorGems/crypto/hashes/sha1.h"
