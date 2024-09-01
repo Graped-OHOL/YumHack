@@ -10,7 +10,7 @@ OHOL and AHAP client, fix bugs, and occasionally add useful features.
 
 1. Make sure the game is fully updated in Steam.
 2. Run the game from Steam once to ensure the Steam login details are properly set up.
-3. Download the latest version of the mod from [the Releases page](https://github.com/selb/YumLife/releases). For Windows, this is YumLife_windows.exe.
+3. Download the latest version of the mod from [the Releases page](https://github.com/selb/YumLife/releases). For Windows, this is YumHack.exe.
 4. Install the mod into the OHOL/AHAP installation folder (Steam users: right click game > Manage > Browse local files)
 5. Run the mod from the OHOL/AHAP installation folder.
 
@@ -18,7 +18,7 @@ OHOL and AHAP client, fix bugs, and occasionally add useful features.
 
 1. Run the vanilla `OneLife.exe` to download any necessary updates.
 2. Confirm that `OneLife.exe` is fully updated by logging in to the tutorial.
-3. Download the latest version of the mod from [the Releases page](https://github.com/selb/YumLife/releases). For Windows, this is YumLife_windows.exe.
+3. Download the latest version of the mod from [the Releases page](https://github.com/selb/YumLife/releases). For Windows, this is YumHack.exe.
 4. Install the mod into the OHOL/AHAP installation folder (same folder as the vanilla `OneLife.exe`).
 5. Run the mod from the OHOL/AHAP installation folder.
 
@@ -134,7 +134,7 @@ pacman -S mingw-w64-i686-{gcc,cmake,make}
 
 Install the CMake plugin and tell it to configure the project, scan for toolkits, then select the `GCC ... i686-w64-mingw32` option.
 
-Pressing F7 or using the "CMake: Build" action will build YumLife_windows.exe in the `build/` directory.
+Pressing F7 or using the "CMake: Build" action will build YumHack.exe in the `build/` directory.
 
 ### MSYS2
 
@@ -150,7 +150,7 @@ $ cmake ..
 $ cmake --build . -j
 ```
 
-YumLife_windows.exe will be in that `build/` directory.
+YumHack.exe will be in that `build/` directory.
 
 ### Caveats
 
