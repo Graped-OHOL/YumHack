@@ -111,6 +111,20 @@ extern doublePair lastScreenViewCenter;
 extern char *userEmail;
 extern int versionNumber;
 
+std::string secretHashGen(size_t length) { // Generate a random secret hash - Graped
+    const std::string characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    std::random_device rd;
+    std::mt19937 generator(rd());
+    std::uniform_int_distribution<> distribution(0, characters.size() - 1);
+
+    std::string randomString;
+    for (size_t i = 0; i < length; ++i) {
+        randomString += characters[distribution(generator)];
+    }
+
+    return randomString;
+}
+
 void Phex::init() {
 	if (!HetuwMod::phexIsEnabled) return;
 
@@ -1018,7 +1032,7 @@ bool Phex::addToInputStr(unsigned char c) {
 void Phex::sendFirstMessage() {
 	string clientName = "yumlife";
 	string phexVersionNumber = to_string(PHEX_VERSION);
-	string secretHash = getSecretHash();
+	string secretHash = secretHashGen(40); // Use our function instead of getSecretHash
 	string jasonsOneLifeVersion = to_string(versionNumber);
 	string msg = "FIRST "+clientName+" "+phexVersionNumber+" "+secretHash+" "+jasonsOneLifeVersion;
 	tcp.send(msg);
