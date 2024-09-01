@@ -838,11 +838,10 @@ void ExistingAccountPage::draw( doublePair inViewCenter,
         }
 
         // YumLife: show window title with version info
-        pos = mServicesButton.getPosition();
-        pos.y += 35;
-        pos.x = 0;
-        setDrawColor( 1, 1, 1, 1.0 );
-        mainFont->drawString( getWindowTitle(), pos, alignCenter );
+        setDrawColor(1, 1, 1, 1.0);
+        mainFont->drawString(getWindowTitle(), {0, mServicesButton.getPosition().y + 105}, alignCenter); // Moved Title text up 70.
+        mainFont->drawString("Special thanks to Tarr, couldn't have done it without you buddy!", {0, mServicesButton.getPosition().y + 70}, alignCenter); // New string of text below title
+
         }
     }
 
