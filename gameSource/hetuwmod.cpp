@@ -2870,7 +2870,11 @@ void HetuwMod::drawPlayerNames( LiveObject* player ) {
 		std::string* name = Phex::getUserDisplayName(Phex::playerIdToHash[player->id]);
 		float textWidth = customFont->measureString( name->c_str() );
 		drawRect( playerNamePos, textWidth/2 + 6, 16 );
+		if (Phex::users[Phex::playerIdToHash[player->id]].channel == "YUMHACK") {
+			setDrawColor( 1.0, 0.3, 0.0, 1.0 );
+		} else {
 		setDrawColor( playerNameColor[0], playerNameColor[1], playerNameColor[2], 1 );
+		}
 		customFont->drawString( name->c_str(), playerNamePos, alignCenter );
 	} else if ( iDrawNames == 2 ) {
 		float textWidth = livingLifePage->hetuwMeasureStringHandwritingFont( player->name );

@@ -262,11 +262,13 @@ public:
 
 	static float colorWhite[4];
 	static float colorNamesInChat[4];
+	static float colorNamesInYHChat[4];
 	static float colorCmdMessage[4];
 	static float colorCmdInGameNames[4];
 	static float colorCmdMessageError[4];
 	static std::string colorCodeWhite;
 	static std::string colorCodeNamesInChat;
+	static std::string colorCodeNamesInYHChat;
 	static std::string colorCodeCmdMessage;
 	static std::string colorCodeCmdInGameNames;
 	static std::string colorCodeCmdMessageError;
