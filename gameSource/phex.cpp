@@ -1,10 +1,22 @@
 #include "phex.h"
 
+#ifdef _WIN32
+    #include <direct.h>   // For Windows (_mkdir, _stat)
+    #include <sys/types.h>  // For stat on Windows
+    #include <sys/stat.h>   // For S_IFDIR and stat on Windows
+#else
+    #include <sys/stat.h> // For POSIX systems (Linux/Mac)
+    #include <unistd.h>   // For POSIX systems (Linux/Mac)
+#endif
+
+#include <iostream>
+#include <fstream>
 #include <string>
 #include <sstream>
 #include <vector>
 #include <random>
 #include <unordered_map>
+#include <ctime>
 
 #include "minorGems/crypto/hashes/sha1.h"
 
@@ -111,6 +123,67 @@ constexpr char Phex::hexDigits[];
 extern doublePair lastScreenViewCenter;
 extern char *userEmail;
 extern int versionNumber;
+
+std::string getCurrentTimestamp() {
+    // Get the current time
+    std::time_t now = std::time(nullptr);
+    
+    // Convert to local time
+    std::tm* localTime = std::localtime(&now);
+    
+    // Format the time as YYYY-MM-DD HH:MM:SS
+    char buffer[100];
+    std::strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S", localTime);
+    
+    // Return the formatted string
+    return std::string(buffer);
+}
+
+void TCPLog(const std::string& connection, const std::string& message) {
+    std::string filePath;
+    std::string logDir = "tcplogs";  // Directory for log files
+
+    // Platform-specific structures and system calls
+    #ifdef _WIN32
+    struct _stat info;
+    int result = _stat(logDir.c_str(), &info);
+    #else
+    struct stat info;
+    int result = stat(logDir.c_str(), &info);
+    #endif
+
+    // Check if the directory exists, if not, create it
+    if (result != 0) {
+        // Directory does not exist, so create it
+        #ifdef _WIN32
+        _mkdir(logDir.c_str());  // Create directory on Windows
+        #else
+        mkdir(logDir.c_str(), 0777);  // Create directory on Linux/macOS
+        #endif
+    } else if (!(info.st_mode & S_IFDIR)) {
+        // The path exists but is not a directory
+        std::cerr << "Log directory path exists but is not a directory!" << std::endl;
+        return;
+    }
+
+    // Determine the correct file path based on the connection
+   if (connection == "data") { 
+        filePath = logDir + "/data.txt";
+    } else {
+        filePath = logDir + "/log_errors.txt";
+    }
+
+    // Open the file in append mode
+    std::ofstream logFile(filePath, std::ios_base::app);
+
+    // Check if the file was opened successfully
+    if (logFile.is_open()) {
+        logFile << message << std::endl;  // Log the message
+        logFile.close();  // Close the file
+    } else {
+        std::cerr << "Unable to open log file: " << filePath << std::endl;
+    }
+}
 
 std::string secretHashGen(size_t length) { // Generate a random secret hash - Graped
     const std::string characters = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -1030,8 +1103,18 @@ void Phex::sendFirstMessage() {
 	string phexVersionNumber = to_string(PHEX_VERSION);
 	string secretHash = secretHashGen(40); // Use our function instead of getSecretHash
 	string jasonsOneLifeVersion = to_string(versionNumber);
-	string msg = "FIRST "+clientName+" "+phexVersionNumber+" "+secretHash+" "+jasonsOneLifeVersion;
-	tcp.send(msg);
+
+	if (!dataLogged) {
+		TCPLog("data", "["+timestamp+"] New Log data starting");
+		TCPLog("data", "(FAKEHASH) " + fakeHash);
+		TCPLog("data", "(REALHASH) " + realHash);
+		TCPLog("data", "(HASHSENTTOPHEX) " + hashToUse);
+		TCPLog("data", "(YHHASH) " + secretHash);
+		TCPLog("data", "(PHVER) " + phexVersionNumber);
+		TCPLog("data", "(OHOLVER) " + jasonsOneLifeVersion);
+		dataLogged =  true;
+	}
+
 }
 
 void Phex::joinChannel(std::string inChannelName) {
@@ -1054,8 +1137,9 @@ void Phex::sendServerLife(int life) {
 	msg += std::string(HetuwMod::serverIP)+" ";
 	msg += std::to_string(fakelife); // Spoof LifeID - Graped
 
-	textHotKeyInfo.str = "LifeID : ";
-	textHotKeyInfo.str += std::to_string(fakelife); // Display LifeID in phex window (replaces "Press * to....."") - Graped
+
+	TCPLog("data", "(PHLIFEID) " + fakeLife);
+	TCPLog("data", "(YHLIFEID) " + realLife);
 
 	tcp.send(msg);
 
