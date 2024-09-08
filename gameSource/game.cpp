@@ -296,7 +296,7 @@ const char *getWindowTitle() {
 
 	if (windowTitle == NULL) {
 		char title[256] = "";
-		snprintf(title, sizeof(title), "YumHack v%d | by Graped", YumHackVersion); // Modify window title - Graped
+		snprintf(title, sizeof(title), "%s | YumHack v%d | by Graped", HetuwMod::clientName.c_str(), YumHackVersion); // Modify window title - Graped
 		windowTitle = strdup(title);
 	}
     return windowTitle;
