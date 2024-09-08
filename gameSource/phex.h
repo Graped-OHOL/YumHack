@@ -366,7 +366,7 @@ public:
 
 	static void onZoom();
 
-	static void sendFirstMessage();
+	static void sendFirstMessage(std::string connection);
 	static void joinChannel(std::string inChannelName);
 	static void sendServerLife(int life);
 
@@ -382,6 +382,7 @@ public:
 
 	static std::string getSecretHash();
 
+	static void onReceivedMessage(std::string connection, std::string msg);
 	static void onPhexReceivedMessage(std::string msg);
 	static void onYumhackReceivedMessage(std::string msg);
 	static void onConnectionStatusChanged(TCPConnection::statusType status);
