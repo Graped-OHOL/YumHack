@@ -842,42 +842,31 @@ void HetuwMod::initSettings() {
 	static int cfgVersionActive = cfgVersionLatest;
 
 	const char *intro =
-	    "\n-----------------------------------------------------------\n"
+	    "\n//-----------------------------------------------------------\n"
 		"// Yumhack Mod Configuration File\n"
 		"// \n"
 		"// My name is Graped and I am the creator of this mod.\n"
 		"// Ok, I modified a mod called Yumlife to help griefers.\n"
-		"// I am not Shady. I am a random who joined ~two weeks ago.\n"
+		"// I am not Shady. I am a random who joined around two weeks before this commit.\n"
 		"// Though I did play a handful of lives back in 2022.\n"
 		"// \n"
-		"// That's my rant. If you still think I'm Shady, Fuck you.\n"
+		"// Thats my rant. If you still think Im Shady, Fuck you.\n"
 		"// \n"
-		"// Thanks for teaching me all this, Tarr. You're the best!\n"
+		"// Thanks for teaching me all this, Tarr. Youre the best!\n"
 		"// -----------------------------------------------------------\n\n\n"
 		"// Only cunts fuck with this setting.\n";
 
 	yumConfig::registerSetting("cfg_version", cfgVersionActive, {preComment: intro});
 
-	const char *clientNameInstr =
-		"\n\n\n// Yumhack Client Name\n"
-		"// \n"
-		"// (Really only applies if you play in windowed mode)\n"
-		"// Use this to modify the title of your client window for the current instance.\n"
-		"// The title will be like 'Your Text | Yumhack v...'\n"
-		"// \n"
-		"// I use this setting to keep track of which alt is which when I have multple clients open.\n";
-
-	yumConfig::registerSetting("client_name", clientName, {preComment: clientNameInstr});
-
 		const char *keyYumhackInstr =
 		"\n\n\n// Yumhack Key(Hash) Instructions\n"
 		"// \n"
-		"// You don't have an option here. If you don't have a valid key my chat server will boot you.\n"
-		"// You wont be able to get anything but the first message through and then you're done.\n"
+		"// You dont have an option here. If you dont have a valid key my chat server will boot you.\n"
+		"// You wont be able to get anything but the first message through and then youre done.\n"
 		"// No seeing other Yumhack users, no Yumhack chat.\n"
 		"// \n"
 		"// In order to obtain a valid key, you need to speak to Graped.\n"
-		"// If you're not a part of GriefLife, get fucked.\n";
+		"// If youre not a part of GriefLife, get fucked.\n";
 
 	yumConfig::registerSetting("yumhack_key", keyYumhack, {preComment: keyYumhackInstr});
 
