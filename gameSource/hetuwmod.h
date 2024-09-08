@@ -318,7 +318,6 @@ public:
 	static double ourLastSpeed; /* last speed when moving, cells/s */
 	static double ourLastDirection; /* in radians */
 	
-	static std::string clientName;
 	static std::string keyYumhack;
 	static std::string keyPhex;
 

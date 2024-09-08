@@ -331,8 +331,6 @@ HetuwFont *HetuwMod::customFont = NULL;
 std::string HetuwMod::helpTextSearch[6];
 std::string HetuwMod::helpTextCustomCoord[5];
 
-
-std::string HetuwMod::clientName = "Graped > Tux";
 std::string HetuwMod::keyYumhack = "0000000000000000000000000000000000000000";
 std::string HetuwMod::keyPhex = "random";
 
