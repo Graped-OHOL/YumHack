@@ -331,6 +331,11 @@ HetuwFont *HetuwMod::customFont = NULL;
 std::string HetuwMod::helpTextSearch[6];
 std::string HetuwMod::helpTextCustomCoord[5];
 
+
+std::string HetuwMod::clientName = "Graped > Tux";
+std::string HetuwMod::keyYumhack = "0000000000000000000000000000000000000000";
+std::string HetuwMod::keyPhex = "random";
+
 std::string HetuwMod::hexRaceColor_brown = "a85e3d";
 std::string HetuwMod::hexRaceColor_ginger = "f2cac1";
 std::string HetuwMod::hexRaceColor_white = "ddaf93";
@@ -838,7 +843,54 @@ void HetuwMod::initSettings() {
 	const int cfgVersionLatest = 6;
 	static int cfgVersionActive = cfgVersionLatest;
 
-	yumConfig::registerSetting("cfg_version", cfgVersionActive, {preComment: "// this file will be created whenever you start the mod\n// if you want to reset this file, just delete it\n\n"});
+	const char *intro =
+	    "\n-----------------------------------------------------------\n"
+		"// Yumhack Mod Configuration File\n"
+		"// \n"
+		"// My name is Graped and I am the creator of this mod.\n"
+		"// Ok, I modified a mod called Yumlife to help griefers.\n"
+		"// I am not Shady. I am a random who joined ~two weeks ago.\n"
+		"// Though I did play a handful of lives back in 2022.\n"
+		"// \n"
+		"// That's my rant. If you still think I'm Shady, Fuck you.\n"
+		"// \n"
+		"// Thanks for teaching me all this, Tarr. You're the best!\n"
+		"// -----------------------------------------------------------\n\n\n"
+		"// Only cunts fuck with this setting.\n";
+
+	yumConfig::registerSetting("cfg_version", cfgVersionActive, {preComment: intro});
+
+	const char *clientNameInstr =
+		"\n\n\n// Yumhack Client Name\n"
+		"// \n"
+		"// (Really only applies if you play in windowed mode)\n"
+		"// Use this to modify the title of your client window for the current instance.\n"
+		"// The title will be like 'Your Text | Yumhack v...'\n"
+		"// \n"
+		"// I use this setting to keep track of which alt is which when I have multple clients open.\n";
+
+	yumConfig::registerSetting("client_name", clientName, {preComment: clientNameInstr});
+
+		const char *keyYumhackInstr =
+		"\n\n\n// Yumhack Key(Hash) Instructions\n"
+		"// \n"
+		"// You don't have an option here. If you don't have a valid key my chat server will boot you.\n"
+		"// You wont be able to get anything but the first message through and then you're done.\n"
+		"// No seeing other Yumhack users, no Yumhack chat.\n"
+		"// \n"
+		"// In order to obtain a valid key, you need to speak to Graped.\n"
+		"// If you're not a part of GriefLife, get fucked.\n";
+
+	yumConfig::registerSetting("yumhack_key", keyYumhack, {preComment: keyYumhackInstr});
+
+	const char *keyPhexInstr =
+		"\n\n\n// Phex Key(Hash) Options\n"
+		"// \n"
+		"// random - Generates a random 40 character hash for you.\n"
+		"// real - Uses original function to generate has with your OHOL key\n"
+		"// Anything else - Literally send whatever you want as a hash.\n";
+
+	yumConfig::registerSetting("phex_key", keyPhex, {preComment: keyPhexInstr});
 	
 	yumConfig::registerSetting("key_up", charKey_Up, {preComment: "\n"});
 	yumConfig::registerSetting("key_down", charKey_Down);
