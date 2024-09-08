@@ -84,7 +84,6 @@ bool Phex::userNameWasChanged = false;
 bool Phex::dataLogged = false;
 
 std::string Phex::channelName = "";
-std::string Phex::yumhackChannelName = "";
 
 double Phex::butHeight = 0.04;
 double Phex::butBorderSize = 0.004;
