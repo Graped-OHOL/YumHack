@@ -26,6 +26,7 @@
 #include "hetuwFont.h"
 
 TCPConnection Phex::tcp;
+TCPConnection Phex::yumhacktcp;
 bool Phex::bSendFirstMsg = true;
 bool Phex::lifeStarted = false;
 
@@ -79,6 +80,7 @@ constexpr int Phex::CMD_MSG_ERROR;
 bool Phex::userNameWasChanged = false;
 
 std::string Phex::channelName = "";
+std::string Phex::yumhackChannelName = "";
 
 double Phex::butHeight = 0.04;
 double Phex::butBorderSize = 0.004;
@@ -207,12 +209,17 @@ void Phex::init() {
 	initServerCommands();
 	initChatCommands();
 
-	tcp.init(HetuwMod::phexIp, HetuwMod::phexPort, &onReceivedMessage, &onConnectionStatusChanged);
+	tcp.init(HetuwMod::phexIp, HetuwMod::phexPort, &onPhexReceivedMessage, &onConnectionStatusChanged);
 	tcp.logTag = "Phex";
 	tcp.charEnd = PHEX_CHAR_END;
-	tcp.verbose = HetuwMod::debugPhex;
-	if (!HetuwMod::phexStartOffline)
+	tcp.verbose = false;
+	yumhacktcp.logTag = "YHPhex";
+	yumhacktcp.charEnd = PHEX_CHAR_END;
+	yumhacktcp.verbose = false;
+	if (!HetuwMod::phexStartOffline) {
 		tcp.connect();
+		yumhacktcp.connect();
+	}
 
 	textInRecPaddingX = 0.01;
 	textInRecPaddingY = textInRecPaddingX * HetuwMod::viewWidthToHeightFactor;
@@ -509,6 +516,7 @@ void Phex::serverCmdLEFT_CHANNEL(std::vector<std::string> input) {
 
 void Phex::serverCmdDISCONNECT(std::vector<std::string> input) {
 	tcp.reconnect();
+	yumhacktcp.reconnect();
 }
 
 void Phex::serverCmdCOORD(std::vector<std::string> input) {
@@ -602,8 +610,7 @@ void Phex::serverCmdGET_ALL_PLAYERS(std::vector<std::string> input) {
 
 		str += ",";
 	}
-	//printf("Phex %s\n", str.c_str());
-	tcp.send(str);
+	yumhacktcp.send(str);
 }
 
 void Phex::initChatCommands() {
@@ -637,7 +644,7 @@ void Phex::chatCmdHELP(std::vector<std::string> input) {
 }
 
 void Phex::chatCmdNAME(std::vector<std::string> input) {
-	tcp.send("USERNAME "+input[1]);
+	yumhacktcp.send("USERNAME " + input[1]);
 	userNameWasChanged = true;
 }
 
@@ -1064,15 +1071,18 @@ void Phex::handleChatCommand(std::string input) {
 void Phex::sendInputStr() {
 	if (inputText.str.length() < 1) return;
 	if (inputText.str[0] == chatServerCmdChar) {
-		std::string sendToServer = "USER_CMD "+inputText.str.substr(1, inputText.str.length()-1);
-		tcp.send(sendToServer);
+
+		std::string sendToServer = inputText.str.substr(1, inputText.str.length()-1);
+
+		yumhacktcp.send(sendToServer);
 		return;
 	}
 	if (inputText.str[0] == chatCmdChar) {
 		handleChatCommand(inputText.str);
 		return;
 	}
-	tcp.send("SAY "+channelName+" "+inputText.str);
+
+    yumhacktcp.send("SAY " + inputText.str);
 
 	if (users[publicHash].name.length() < 1) {
 		addCmdMessageToChatWindow("to set your name type: /name yourName");
@@ -1081,7 +1091,7 @@ void Phex::sendInputStr() {
 
 bool Phex::addToInputStr(unsigned char c) {
 	if (c == 13) { // enter
-		if (tcp.status != TCPConnection::ONLINE) return true;
+		if (yumhacktcp.status != TCPConnection::ONLINE) return true;
 		sendInputStr();
 		inputText.str = "";
 		mainChatWindow.scrollToBottom();
@@ -1115,14 +1125,25 @@ void Phex::sendFirstMessage() {
 		dataLogged =  true;
 	}
 
+		tcp.send("FIRST "+clientName+" "+phexVersionNumber+" "+hashToUse+" "+jasonsOneLifeVersion);
+		yumhacktcp.send("FIRST yumhack "+phexVersionNumber+" "+secretHash+" "+jasonsOneLifeVersion);
 }
 
 void Phex::joinChannel(std::string inChannelName) {
 	if (channelName.length() > 0) tcp.send("LEAVE "+channelName);
 	channelName = inChannelName;
-	tcp.send("JOIN "+channelName);
+	std::string phexChannel = std::string(HetuwMod::serverIP);
+
+	tcp.send("JOIN "+phexChannel);
+
+	yumhacktcp.send("JOIN YUMHACK");
+
 	mainChatWindow.clear();
-	tcp.send("GETLAST "+channelName+" 30");
+
+	tcp.send("GETLAST "+phexChannel+" 30");
+
+	yumhacktcp.send("GETLAST YUMHACK 30");
+
 	sendServerLife(bSendFakeLife ? 1 : HetuwMod::ourLiveObject->id);
 	if (!HetuwMod::phexSkipTOS) {
 		tcp.send("USER_CMD tos");
@@ -1142,6 +1163,7 @@ void Phex::sendServerLife(int life) {
 	TCPLog("data", "(YHLIFEID) " + realLife);
 
 	tcp.send(msg);
+	yumhacktcp.send("SERVER_LIFE YUMHACK " + realLife);
 
 }
 
@@ -1263,7 +1285,14 @@ string Phex::getSecretHash() {
 	return strHash;
 }
 
-void Phex::onReceivedMessage(std::string msg) {
+void Phex::onPhexReceivedMessage(std::string msg) {
+	onReceivedMessage("phex",  msg);
+}
+
+void Phex::onYumhackReceivedMessage(std::string msg) {
+	onReceivedMessage("yumhack",  msg);
+}
+
 	if (msg.length() <= 0) {
 		printf("Phex Error: received empty message from server\n");
 		return;
@@ -1288,9 +1317,26 @@ void Phex::onReceivedMessage(std::string msg) {
 }
 
 void Phex::onConnectionStatusChanged(TCPConnection::statusType status) {
-	/* This causes a re-measure of the status text, so wrapping needs to be
-	 * disabled for the duration.
-	 */
+	switch (status) {
+		case TCPConnection::UNINITIALIZED:
+		case TCPConnection::OFFLINE:
+			break;
+		case TCPConnection::CONNECTING:
+			bSendFirstMsg = true;
+			break;
+		case TCPConnection::ONLINE:
+			channelName = "";
+			if (bSendFirstMsg) {
+				sendFirstMessage("phex");
+				bSendFirstMsg = false;
+			}
+			if (forceChannel.length() > 1) joinChannel(forceChannel);
+			else joinChannel(string(HetuwMod::serverIP));
+			break;
+	}
+}
+
+void Phex::onYHConnectionStatusChanged(TCPConnection::statusType status) {
 	mainFont->hetuwMaxXActive = false;
 
 	switch (status) {
@@ -1304,19 +1350,19 @@ void Phex::onConnectionStatusChanged(TCPConnection::statusType status) {
 			HetuwMod::writeLineToLogs("phex_status", "connecting");
 			titleText.setToConnecting();
 			setArray(butPhex.colorBckgr, colorButPhexConnecting, 4);
-			bSendFirstMsg = true;
+			bYHSendFirstMsg = true;
 			break;
 		case TCPConnection::ONLINE:
 			HetuwMod::writeLineToLogs("phex_status", "online");
 			titleText.setToOnline();
 			setArray(butPhex.colorBckgr, colorButPhexOnline, 4);
-			channelName = "";
-			if (bSendFirstMsg) {
-				sendFirstMessage();
-				bSendFirstMsg = false;
+			channelName = "YUMHACK";
+			if (bYHSendFirstMsg) {
+				sendFirstMessage("yumhack");
+				bYHSendFirstMsg = false;
 			}
-			if (forceChannel.length() > 1) joinChannel(forceChannel);
-			else joinChannel(string(HetuwMod::serverIP));
+			if (forceChannel.length() > 1) joinChannel("YUMHACK");
+			else joinChannel("YUMHACK");
 			break;
 	}
 
@@ -1329,10 +1375,10 @@ void Phex::onClickPhex() {
 
 void Phex::onClickTurnOff() {
 	if (strEquals(butTurnOff.text.str, "Turn Off")) {
-		tcp.disconnect();
+		yumhacktcp.disconnect();
 		butTurnOff.text.str = "Turn On";
 	} else {
-		tcp.connect();
+		yumhacktcp.connect();
 		butTurnOff.text.str = "Turn Off";
 	}
 	butTurnOff.setDrawData();
@@ -1450,12 +1496,21 @@ bool Phex::onKeyUp(unsigned char inASCII) {
 
 void Phex::onRingBell(int x, int y) {
 	if (!HetuwMod::phexIsEnabled) return;
+
 	tcp.send("BELL "+to_string(x)+" "+to_string(y)+" "+string(HetuwMod::serverIP));
+
+	yumhacktcp.send("BELL "+to_string(x)+" "+to_string(y)+" "+string(HetuwMod::serverIP));
+
+	
 }
 
 void Phex::onRingApoc(int x, int y) {
 	if (!HetuwMod::phexIsEnabled) return;
+
 	tcp.send("APOC "+to_string(x)+" "+to_string(y)+" "+string(HetuwMod::serverIP));
+
+	yumhacktcp.send("APOC "+to_string(x)+" "+to_string(y)+" "+string(HetuwMod::serverIP));
+
 }
 
 void Phex::onBirth() {
@@ -1472,6 +1527,7 @@ void Phex::onBirth() {
 		if (channelName != expectedChannel) {
 			HetuwMod::writeLineToLogs("phex_status", channelName + " != " + expectedChannel + ", reconnecting");
 			tcp.reconnect();
+			yumhacktcp.reconnect();
 		} else {
 			sendServerLife(bSendFakeLife ? 1 : HetuwMod::ourLiveObject->id);
 		}
@@ -1488,11 +1544,10 @@ void Phex::onBirth() {
 void Phex::onGameStep() {
 	if (!HetuwMod::phexIsEnabled) return;
 
-	// Phex originally tcp.step()'d on the livingLifePage draw loop, so this
-	// condition is a bit of a kludge to avoid having to rework this module's
-	// lifecycle assumptions.
-	if (lifeStarted)
+	if (lifeStarted) {
 		tcp.step();
+		yumhacktcp.step();
+	}
 }
 
 void Phex::sendBiomeChunk(int chunkX, int chunkY) {
@@ -1535,7 +1590,7 @@ void Phex::sendBiomeChunk(int chunkX, int chunkY) {
 	}
 
 	tcp.send(sendStr);
-	*c |= (1U << bitPos); // set bit
+	yumhacktcp.send(sendStr);
 }
 
 void Phex::loopBiomeChunks() {
@@ -1574,4 +1629,5 @@ void Phex::sendPosition() {
 	lastPositionSentX = posX; lastPositionSentY = posY;
 	std::string str = "POSITION "+to_string(posX)+" "+to_string(posY);
 	tcp.send(str);
+	yumhacktcp.send(str);
 }

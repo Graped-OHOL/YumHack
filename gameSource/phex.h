@@ -221,7 +221,9 @@ public:
 	};
 
 	static TCPConnection tcp;
+	static TCPConnection yumhacktcp;
 	static bool bSendFirstMsg;
+	static bool bYHSendFirstMsg;
 	static bool lifeStarted;
 
 	static std::unordered_map<std::string, ServerCommand> serverCommands;
@@ -378,8 +380,10 @@ public:
 
 	static std::string getSecretHash();
 
-	static void onReceivedMessage(std::string msg);
+	static void onPhexReceivedMessage(std::string msg);
+	static void onYumhackReceivedMessage(std::string msg);
 	static void onConnectionStatusChanged(TCPConnection::statusType status);
+	static void onYHConnectionStatusChanged(TCPConnection::statusType status);
 
 	static void onClickPhex();
 	static void onClickTurnOff();
