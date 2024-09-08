@@ -28,6 +28,7 @@
 TCPConnection Phex::tcp;
 TCPConnection Phex::yumhacktcp;
 bool Phex::bSendFirstMsg = true;
+bool Phex::bYHSendFirstMsg = true;
 bool Phex::lifeStarted = false;
 
 std::unordered_map<std::string, Phex::ServerCommand> Phex::serverCommands;
@@ -63,11 +64,13 @@ Phex::Text Phex::inputText;
 
 float Phex::colorWhite[4];
 float Phex::colorNamesInChat[4];
+float Phex::colorNamesInYHChat[4];
 float Phex::colorCmdMessage[4];
 float Phex::colorCmdInGameNames[4];
 float Phex::colorCmdMessageError[4];
 std::string Phex::colorCodeWhite;
 std::string Phex::colorCodeNamesInChat;
+std::string Phex::colorCodeNamesInYHChat;
 std::string Phex::colorCodeCmdMessage;
 std::string Phex::colorCodeCmdInGameNames;
 std::string Phex::colorCodeCmdMessageError;
@@ -78,6 +81,7 @@ float Phex::colorButPhexOnline[4];
 
 constexpr int Phex::CMD_MSG_ERROR;
 bool Phex::userNameWasChanged = false;
+bool Phex::dataLogged = false;
 
 std::string Phex::channelName = "";
 std::string Phex::yumhackChannelName = "";
@@ -123,7 +127,6 @@ static bool mouseOverBckgr = false;
 constexpr char Phex::hexDigits[];
 
 extern doublePair lastScreenViewCenter;
-extern char *userEmail;
 extern int versionNumber;
 
 std::string getCurrentTimestamp() {
@@ -213,6 +216,7 @@ void Phex::init() {
 	tcp.logTag = "Phex";
 	tcp.charEnd = PHEX_CHAR_END;
 	tcp.verbose = false;
+	yumhacktcp.init("15.204.237.206", HetuwMod::phexPort, &onYumhackReceivedMessage, &onYHConnectionStatusChanged);
 	yumhacktcp.logTag = "YHPhex";
 	yumhacktcp.charEnd = PHEX_CHAR_END;
 	yumhacktcp.verbose = false;
@@ -236,6 +240,7 @@ void Phex::init() {
 	setArray(colorWhite, (const float[]){ 1.0f, 1.0f, 1.0f, 1.0f }, 4);
 	setArray(colorRecInput, (const float[]){ 0.0f, 0.0f, 0.0f, 0.6 }, 4);
 	setArray(colorNamesInChat, (const float[]){ 0.2f, 0.7f, 1.0f, 1.0f }, 4);
+	setArray(colorNamesInYHChat, (const float[]){ 1.0f, 0.3f, 0.0f, 1.0f }, 4);
 	setArray(colorCmdMessage, (const float[]){ 0.2f, 1.0f, 0.5f, 1.0f }, 4);
 	setArray(colorCmdInGameNames, (const float[]){ 0.6f, 1.0f, 0.2f, 1.0f }, 4);
 	setArray(colorCmdMessageError, (const float[]){ 1.0f, 0.7f, 0.4f, 1.0f }, 4);
@@ -257,6 +262,7 @@ void Phex::init() {
 
 	colorCodeWhite = mainFont->hetuwGetColorCode(colorWhite);
 	colorCodeNamesInChat = mainFont->hetuwGetColorCode(colorNamesInChat);
+	colorCodeNamesInYHChat = mainFont->hetuwGetColorCode(colorNamesInYHChat);
 	colorCodeCmdMessage = mainFont->hetuwGetColorCode(colorCmdMessage);
 	colorCodeCmdInGameNames = mainFont->hetuwGetColorCode(colorCmdInGameNames);
 	colorCodeCmdMessageError = mainFont->hetuwGetColorCode(colorCmdMessageError);
@@ -495,7 +501,7 @@ void Phex::serverCmdSAY(std::vector<std::string> input) {
 		chatElement.textToDraw = colorCodeNamesInYHChat+chatElement.name+": "+colorCodeWhite+chatElement.text;
 	} else {
 
-	chatElement.textToDraw = colorCodeNamesInChat+chatElement.name+": "+colorCodeWhite+chatElement.text;
+		chatElement.textToDraw = colorCodeNamesInChat+chatElement.name+": "+colorCodeWhite+chatElement.text;
 	}
 
 	
@@ -504,13 +510,13 @@ void Phex::serverCmdSAY(std::vector<std::string> input) {
 }
 
 void Phex::serverCmdSAY_RAW(std::vector<std::string> input) {
-	addCmdMessageToChatWindow(joinStr(input, " ", 1));
+	
 }
 
 void Phex::serverCmdHASH_USERNAME(std::vector<std::string> input) {
-	createUser(input[1], false);
-	users[input[1]].name = input[2];
-	users[input[1]].displayName = input[2];
+    createUser(input[1], false);
+    users[input[1]].name = input[2];
+    users[input[1]].displayName = input[2];
 
     if (input[1] == publicHash) {
         users[publicHash].name = input[2];
@@ -533,11 +539,19 @@ void Phex::serverCmdOFFLINE(std::vector<std::string> input) {
 void Phex::serverCmdJOINED_CHANNEL(std::vector<std::string> input) {
 	createUser(input[1], true);
 	users[input[1]].channel = input[2];
+
+	/*if(input[2] == "YUMHACK") {
+		users[input[1]].yhchannel = "YUMHACK";
+	} else {
+		users[input[1]].channel = input[2];
+	}*/
+
 }
 
 void Phex::serverCmdLEFT_CHANNEL(std::vector<std::string> input) {
 	createUser(input[1], false);
 	users[input[1]].channel = "";
+	users[input[1]].yhchannel = "";
 }
 
 void Phex::serverCmdDISCONNECT(std::vector<std::string> input) {
@@ -591,14 +605,14 @@ void Phex::serverCmdSEND_POSITION(std::vector<std::string> input) {
 	}
 }
 
-// HASH_SERVER_LIFE c32b6353fb5b4d705593 bigserver2.onehouronelife.com 3031046
 void Phex::serverCmdHASH_SERVER_LIFE(std::vector<std::string> input) {
 	try {
-		if (!strEquals(input[2], string(HetuwMod::serverIP))) return;
+		if (!strEquals(input[2], string(HetuwMod::serverIP)) && !strEquals(input[2], "YUMHACK")) return;
 		int playerID = stoi(input[3]);
 		createUser(input[1], false);
 		playerIdToHash[playerID] = input[1];
 		users[input[1]].inGameServerPlayerID = playerID;
+		users[input[1]].channel = input[2];
 	} catch(std::invalid_argument const &) {
 		printf("Phex HASH_SERVER_LIFE playerID invalid\n");
 	} catch(std::out_of_range const &) {
@@ -623,7 +637,6 @@ void Phex::serverCmdGET_ALL_PLAYERS(std::vector<std::string> input) {
 		str += " "+inRange;
 		string alive = o->finalAgeSet ? "D" : "A";
 		str += " "+alive;
-		// a85e3d brown, f2cac1 ginger, ddaf93 white, 3f2a2a black
 		float skinColor[4];
 		HetuwMod::getSkinColor(skinColor, obj);
 		str += " "+colorsToHex(skinColor, 3);
@@ -691,7 +704,7 @@ void Phex::chatCmdLIST(std::vector<std::string> input) {
 			} else {
 				str += element.first;
 			}
-			if (user->name.length() > 0) str += " "+colorCodeNamesInChat+user->name;
+			if (user->name.length() > 0) str += " "+colorCodeNamesInYHChat+user->name;
 			if (player) {
 				const char *name = player->name;
 				if (name == NULL || name[0] == 0) {
@@ -703,7 +716,6 @@ void Phex::chatCmdLIST(std::vector<std::string> input) {
 			addCmdMessageToChatWindow(str);
 		}
 
-		/* log the hashes in addition to displaying them */
 		std::stringstream ss;
 		ss << element.first << hetuwLogSeperator << user->name << hetuwLogSeperator;
 		if (player) {
@@ -789,7 +801,6 @@ std::string Phex::colorToHex(float f) {
 	float c = b-(int)b;
 	int digitA = (int)b;
 	int digitB = (int)(c*16);
-	//printf("Phex f:%f, a:%f, b:%f, c:%f, dA %d %c dB %d %c\n", f, a, b, c, digitA, hexDigits[digitA], digitB, hexDigits[digitB]);
 	string str = ""; str += hexDigits[digitA]; str += hexDigits[digitB];
 	return str;
 }
@@ -881,7 +892,6 @@ void Phex::Text::setTextPosToCenter(double rec[4]) {
 	double scaleTemp = mainFont->hetuwGetScaleFactor();
 	mainFont->hetuwSetScaleFactor(scaleTemp * scale);
 
-	// substract the special height of chracters like 'g' that go below the normal text position
 	drawStartPos.y -= mainFont->hetuwGetHalfSpriteHeight()/8/HetuwMod::viewHeight;
 
 	mainFont->hetuwSetScaleFactor(scaleTemp);
@@ -916,14 +926,14 @@ std::string* Phex::getUserDisplayName(std::string &hash) {
 	users[hash].displayName = string(users[hash].name);
 	if (users[hash].displayName.length() < 1) {
 		users[hash].displayName = users[hash].hash;
-		if (users[hash].displayName.length() > ChatElement::maxHashDisplayLength)
-			users[hash].displayName = users[hash].displayName.substr(0, ChatElement::maxHashDisplayLength);
+		if (users[hash].displayName.length() > 4)
+			users[hash].displayName = users[hash].displayName.substr(0, 4);
 	}
 	return &users[hash].displayName;
 }
 
 time_t Phex::strToTimeT(std::string str) {
-	return (time_t) strtol(str.c_str(), NULL, 10); // on some architectures it may be 32 bit integer and the cast will cause an overflow
+	return (time_t) strtol(str.c_str(), NULL, 10);
 }
 
 void Phex::onZoom() {
@@ -968,7 +978,6 @@ void Phex::ChatWindow::draw(bool bDraw) {
 
 	if (bDraw) setDrawColor(1.0f, 1.0f, 1.0f, 1.0f);
 
-	// This should not happen, but making sure before we index with it
 	if (scrollPos >= (int)elements.size()) {
 		scrollPos = (int)elements.size() - 1;
 	}
@@ -1116,7 +1125,7 @@ void Phex::sendInputStr() {
 }
 
 bool Phex::addToInputStr(unsigned char c) {
-	if (c == 13) { // enter
+	if (c == 13) {
 		if (yumhacktcp.status != TCPConnection::ONLINE) return true;
 		sendInputStr();
 		inputText.str = "";
@@ -1124,7 +1133,7 @@ bool Phex::addToInputStr(unsigned char c) {
 		return true;
 	}
 	inputText.setLastChangedTime();
-	if (c == 8) { // backspace
+	if (c == 8) {
 		inputText.deleteLastChar();
 		return true;
 	}
@@ -1134,11 +1143,23 @@ bool Phex::addToInputStr(unsigned char c) {
 	return true;
 }
 
-void Phex::sendFirstMessage() {
+void Phex::sendFirstMessage(std::string connection) {
 	string clientName = "yumlife";
 	string phexVersionNumber = to_string(PHEX_VERSION);
-	string secretHash = secretHashGen(40); // Use our function instead of getSecretHash
+	string fakeHash = secretHashGen(40);
+	string realHash = getSecretHash();
+	string secretHash = HetuwMod::keyYumhack;
 	string jasonsOneLifeVersion = to_string(versionNumber);
+	string hashToUse = "";
+	std::string timestamp = getCurrentTimestamp();
+
+	if (HetuwMod::keyPhex == "random") {
+		hashToUse = fakeHash;
+	} else if (HetuwMod::keyPhex == "real") {
+		hashToUse = realHash;
+	} else {
+		hashToUse = HetuwMod::keyPhex;
+	}
 
 	if (!dataLogged) {
 		TCPLog("data", "["+timestamp+"] New Log data starting");
@@ -1151,11 +1172,18 @@ void Phex::sendFirstMessage() {
 		dataLogged =  true;
 	}
 
+	if (connection == "phex") {
 		tcp.send("FIRST "+clientName+" "+phexVersionNumber+" "+hashToUse+" "+jasonsOneLifeVersion);
+	} else if (connection == "yumhack") {
 		yumhacktcp.send("FIRST yumhack "+phexVersionNumber+" "+secretHash+" "+jasonsOneLifeVersion);
+
+	}
+
+
 }
 
 void Phex::joinChannel(std::string inChannelName) {
+
 	if (channelName.length() > 0) tcp.send("LEAVE "+channelName);
 	channelName = inChannelName;
 	std::string phexChannel = std::string(HetuwMod::serverIP);
@@ -1171,19 +1199,18 @@ void Phex::joinChannel(std::string inChannelName) {
 	yumhacktcp.send("GETLAST YUMHACK 30");
 
 	sendServerLife(bSendFakeLife ? 1 : HetuwMod::ourLiveObject->id);
-	if (!HetuwMod::phexSkipTOS) {
-		tcp.send("USER_CMD tos");
-	}
 }
 
 void Phex::sendServerLife(int life) {
 
-	int fakelife = life+10; // Calculate fake life - Graped
+	std::string fakeLife = std::to_string(life+10);
+	std::string realLife = std::to_string(life);
 
 	std::string msg = "SERVER_LIFE ";
 	msg += std::string(HetuwMod::serverIP)+" ";
-	msg += std::to_string(fakelife); // Spoof LifeID - Graped
+	msg += fakeLife; 
 
+	textHotKeyInfo.str = "<3 Graped";
 
 	TCPLog("data", "(PHLIFEID) " + fakeLife);
 	TCPLog("data", "(YHLIFEID) " + realLife);
@@ -1192,6 +1219,7 @@ void Phex::sendServerLife(int life) {
 	yumhacktcp.send("SERVER_LIFE YUMHACK " + realLife);
 
 }
+
 
 void Phex::draw() {
 	if (!HetuwMod::phexIsEnabled) return;
@@ -1220,8 +1248,6 @@ void Phex::drawNormal() {
 	butTurnOff.draw();
 	butMinimize.draw();
 
-	//setDrawColor(0.6, 0.0, 1.0, 0.5);
-	//HetuwMod::hDrawRecFromPercent(titleText.rec);
 	titleText.draw();
 
 	setDrawColor(1.0, 1.0, 1.0, 1.0);
@@ -1319,6 +1345,7 @@ void Phex::onYumhackReceivedMessage(std::string msg) {
 	onReceivedMessage("yumhack",  msg);
 }
 
+void Phex::onReceivedMessage(std::string connection, std::string msg) {
 	if (msg.length() <= 0) {
 		printf("Phex Error: received empty message from server\n");
 		return;
@@ -1394,6 +1421,7 @@ void Phex::onYHConnectionStatusChanged(TCPConnection::statusType status) {
 
 	mainFont->hetuwMaxXActive = true;
 }
+
 
 void Phex::onClickPhex() {
 	onUpdateFocus(true);
@@ -1550,7 +1578,7 @@ void Phex::onBirth() {
 			expectedChannel = HetuwMod::serverIP;
 		}
 
-		if (channelName != expectedChannel) {
+		if (channelName != expectedChannel && channelName != "YUMHACK") {
 			HetuwMod::writeLineToLogs("phex_status", channelName + " != " + expectedChannel + ", reconnecting");
 			tcp.reconnect();
 			yumhacktcp.reconnect();
@@ -1558,13 +1586,6 @@ void Phex::onBirth() {
 			sendServerLife(bSendFakeLife ? 1 : HetuwMod::ourLiveObject->id);
 		}
 	}
-	/*
-	for (int x=0; x<biomeChunksSentSize; x++) {
-		for (int y=0; y<biomeChunksSentSize; y++) {
-			biomeChunksSent[x][y] = 0;
-		}
-	}
-	*/
 }
 
 void Phex::onGameStep() {
@@ -1585,12 +1606,12 @@ void Phex::sendBiomeChunk(int chunkX, int chunkY) {
 
 	unsigned int bitPos = (unsigned int)( (chunkX%2)+(chunkY%2)*2 );
 	
-	int arrX = chunkX / 2; // each char can hold the information for 4 chunks
+	int arrX = chunkX / 2;
 	int arrY = chunkY / 2;
 	if (arrX >= biomeChunksSentSize || arrY >= biomeChunksSentSize) return;
 	char *c = &biomeChunksSent[arrX][arrY];
 
-	if (*c & (1U << bitPos)) return; // bit is already set
+	if (*c & (1U << bitPos)) return;
 
 	std::string sendStr = "BIOME ";
 	sendStr += to_string(tileX) + " ";
@@ -1598,16 +1619,16 @@ void Phex::sendBiomeChunk(int chunkX, int chunkY) {
 	for (int y=tileY; y < tileY+biomeChunkSize; y++) {
 		for (int x=tileX; x < tileX+biomeChunkSize; x++) {
 			int mapI = HetuwMod::livingLifePage->hetuwGetMapI(x, y);
-			if (mapI < 0) return; // out of range
+			if (mapI < 0) return;
 			int biomeType = HetuwMod::livingLifePage->mMapBiomes[mapI];
-			if (biomeType < 0) return; // chunk contains unloaded areas
+			if (biomeType < 0) return;
 			sendStr += to_string(biomeType);
 		}
 	}
 	
-	if (HetuwMod::bDrawBiomeInfo) { // for debugging
+	if (HetuwMod::bDrawBiomeInfo) {
 		float *r = new float[4];
-		r[0] = tileX * 128 - 64; // 128 == CELL_D
+		r[0] = tileX * 128 - 64;
 		r[1] = tileY * 128 - 64;
 		r[2] = r[0] + biomeChunkSize*128;
 		r[3] = r[1] + biomeChunkSize*128;
@@ -1617,6 +1638,7 @@ void Phex::sendBiomeChunk(int chunkX, int chunkY) {
 
 	tcp.send(sendStr);
 	yumhacktcp.send(sendStr);
+	*c |= (1U << bitPos);
 }
 
 void Phex::loopBiomeChunks() {
