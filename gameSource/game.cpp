@@ -291,6 +291,9 @@ char isNonIntegerScalingAllowed() {
 
 static char *windowTitle = NULL;
 const char *getWindowTitle() {
+
+    HetuwMod::init();
+
 	if (windowTitle == NULL) {
 		char title[256] = "";
 		snprintf(title, sizeof(title), "YumHack v%d | by Graped", YumHackVersion); // Modify window title - Graped
@@ -474,8 +477,6 @@ void initDrawString( int inWidth, int inHeight ) {
     toggleMipMapGeneration( true );
     toggleMipMapMinFilter( true );
     toggleTransparentCropping( true );
-    
-	HetuwMod::init();
 	hetuwSetViewSize();
 
     mainFont = new Font( getFontTGAFileName(), 6, 16, false, 16 );
