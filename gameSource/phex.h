@@ -279,6 +279,7 @@ public:
 
 	static constexpr int CMD_MSG_ERROR = 2;
 	static bool userNameWasChanged;
+	static bool dataLogged;
 
 	static std::string channelName;
 

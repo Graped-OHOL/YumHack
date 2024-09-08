@@ -539,19 +539,11 @@ void Phex::serverCmdOFFLINE(std::vector<std::string> input) {
 void Phex::serverCmdJOINED_CHANNEL(std::vector<std::string> input) {
 	createUser(input[1], true);
 	users[input[1]].channel = input[2];
-
-	/*if(input[2] == "YUMHACK") {
-		users[input[1]].yhchannel = "YUMHACK";
-	} else {
-		users[input[1]].channel = input[2];
-	}*/
-
 }
 
 void Phex::serverCmdLEFT_CHANNEL(std::vector<std::string> input) {
 	createUser(input[1], false);
 	users[input[1]].channel = "";
-	users[input[1]].yhchannel = "";
 }
 
 void Phex::serverCmdDISCONNECT(std::vector<std::string> input) {

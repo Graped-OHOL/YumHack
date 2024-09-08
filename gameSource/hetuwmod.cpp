@@ -2873,7 +2873,7 @@ void HetuwMod::drawPlayerNames( LiveObject* player ) {
 		if (Phex::users[Phex::playerIdToHash[player->id]].channel == "YUMHACK") {
 			setDrawColor( 1.0, 0.3, 0.0, 1.0 );
 		} else {
-		setDrawColor( playerNameColor[0], playerNameColor[1], playerNameColor[2], 1 );
+			setDrawColor( playerNameColor[0], playerNameColor[1], playerNameColor[2], 1 );
 		}
 		customFont->drawString( name->c_str(), playerNamePos, alignCenter );
 	} else if ( iDrawNames == 2 ) {
