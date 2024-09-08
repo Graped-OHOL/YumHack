@@ -511,6 +511,11 @@ void Phex::serverCmdHASH_USERNAME(std::vector<std::string> input) {
 	createUser(input[1], false);
 	users[input[1]].name = input[2];
 	users[input[1]].displayName = input[2];
+
+    if (input[1] == publicHash) {
+        users[publicHash].name = input[2];
+        users[publicHash].displayName = input[2];
+    }
 }
 
 void Phex::serverCmdONLINE(std::vector<std::string> input) {
