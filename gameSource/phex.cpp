@@ -476,9 +476,30 @@ void Phex::serverCmdSAY(std::vector<std::string> input) {
 	chatElement.unixTimeStamp = strToTimeT(input[3]);
 	chatElement.text = joinStr(input, " ", 4);
 
+	std::string removeword = "YUMHACK";
+
+    if (chatElement.text.find(removeword) == 0) {
+        size_t spacePos = chatElement.text.find(' ', removeword.length());
+        if (spacePos != std::string::npos) {
+            chatElement.text = chatElement.text.substr(spacePos + 1);
+        } else {
+            chatElement.text = "";
+        }
+    }
+
+    //std::cout << chatElement.text << std::endl; 
+
 	chatElement.name = string(*getUserDisplayName(chatElement.hash));
 
+	if(input[1] == "YUMHACK") {
+		chatElement.textToDraw = colorCodeNamesInYHChat+chatElement.name+": "+colorCodeWhite+chatElement.text;
+	} else {
+
 	chatElement.textToDraw = colorCodeNamesInChat+chatElement.name+": "+colorCodeWhite+chatElement.text;
+	}
+
+	
+
 	mainChatWindow.addElement(chatElement);
 }
 
