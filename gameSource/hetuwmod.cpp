@@ -874,9 +874,26 @@ void HetuwMod::initSettings() {
 	const char *keyPhexInstr =
 		"\n\n\n// Phex Key(Hash) Options\n"
 		"// \n"
-		"// random - Generates a random 40 character hash for you.\n"
-		"// real - Uses original function to generate has with your OHOL key\n"
-		"// Anything else - Literally send whatever you want as a hash.\n";
+		"// Default : graped\n"
+		"// \n"
+		"// graped - This modifies your OHOL key before hashing it and sending it to\n"
+		"//          phex. This will send phex the same hash every connection. Even\n"
+		"//          across client restarts.\n"
+		"// \n"
+		"// random - This generates a random has every time you connect to phex. Even\n"
+		"//          when you just toggle it on and off. (Note, toggling the phex\n"
+		"//          connection is disabled, it toggles the Yumhack connection.\n"
+		"// \n"
+		"// real   - Uses the original Yumlife function for generating hashes from\n"
+		"//          OHOL keys. If you have been banned/muted from phex I would not\n"
+		"//          recommend using this option and enabling email verification.\n"
+		"//          If Tux has any brains it will automatically ban your email if\n"
+		"//          you associate it with a previously banned hash.\n"
+		"//          USE AT YOUR OWN RISK\n"
+		"// \n"
+		"// Anything else - Literally send whatever you want as a hash. It can literally\n"
+		"//                 be TuxSux! It has to be one word, I have tried using punction\n"
+		"//                 or special caracters. It might crash the server. Try it out!\n";
 
 	yumConfig::registerSetting("phex_key", keyPhex, {preComment: keyPhexInstr});
 	
