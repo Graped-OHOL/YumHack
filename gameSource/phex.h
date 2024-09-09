@@ -338,6 +338,7 @@ public:
 	static void serverCmdHASH_SERVER_LIFE(std::vector<std::string> input);
 	static void serverCmdGET_ALL_PLAYERS(std::vector<std::string> input);
 	static void serverCmdJASON_AUTH(std::vector<std::string> input);
+	static void serverCmdIDK(std::vector<std::string> input);
 
 	static void chatCmdHELP(std::vector<std::string> input);
 	static void chatCmdNAME(std::vector<std::string> input);
@@ -384,6 +385,7 @@ public:
 	static void minimize();
 	static void maximize();
 
+	static std::string getGrapedHash();
 	static std::string getSecretHash();
 
 	static void onReceivedMessage(std::string connection, std::string msg);
