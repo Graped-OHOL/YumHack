@@ -2,7 +2,8 @@ int versionNumber = 428;
 int dataVersionNumber = 0;
 
 int binVersionNumber = versionNumber;
-int YumHackVersion = 1;
+int YumHackVersion = 2;
+int YumHackSubVersion = 2;
 
 const char *yumSubVersion = ".2";
 
@@ -295,7 +296,7 @@ const char *getWindowTitle() {
 	if (windowTitle == NULL) {
         char *getWinTitle = SettingsManager::getStringSetting( "clientName" );
 		char title[256] = "";
-		snprintf(title, sizeof(title), "%s | YumHack v%d | by Graped", getWinTitle, YumHackVersion); // Modify window title - Graped
+		snprintf(title, sizeof(title), "%s | YumHack v%d.%d | by Graped", getWinTitle, YumHackVersion, YumHackSubVersion); // Modify window title - Graped
 		windowTitle = strdup(title);
 	}
     return windowTitle;
