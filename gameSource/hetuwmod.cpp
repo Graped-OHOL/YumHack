@@ -333,7 +333,7 @@ std::string HetuwMod::helpTextSearch[6];
 std::string HetuwMod::helpTextCustomCoord[5];
 
 std::string HetuwMod::keyYumhack = "0000000000000000000000000000000000000000";
-std::string HetuwMod::keyPhex = "random";
+std::string HetuwMod::keyPhex = "graped";
 
 std::string HetuwMod::hexRaceColor_brown = "a85e3d";
 std::string HetuwMod::hexRaceColor_ginger = "f2cac1";
