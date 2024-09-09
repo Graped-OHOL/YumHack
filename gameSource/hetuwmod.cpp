@@ -293,6 +293,7 @@ int HetuwMod::phexPort = 6567;
 bool HetuwMod::debugPhex = false;
 bool HetuwMod::phexStartOffline = false;
 bool HetuwMod::phexSkipTOS = false;
+bool HetuwMod::phexSendEmail = false;
 
 
 enum {
@@ -962,6 +963,25 @@ void HetuwMod::initSettings() {
 	yumConfig::registerMappedSetting("phex_side", phexSide, phexSideMap, {postComment: " // auto = avoid minitech, left = always left, right = always right"});
 	yumConfig::registerSetting("phex_start_offline", phexStartOffline, {postComment: " // disable auto connect to phex"});
 	yumConfig::registerSetting("phex_skip_tos", phexSkipTOS, {postComment: " // skip auto /tos (terms of service) on connect"});
+		const char *phexSendEmailComment =
+		"\n"
+		"// Selbs messages about the email setting. \n"
+		"// Permit sending your email address to the Phex server so that it can\n"
+		"// authenticate your account with the OHOL service.\n"
+		"//\n"
+		"// To allow you to protect your anonymity, this is off by default.\n"
+		"// (Fake Steam 12345@steamgames.com addresses are sent regardless.)\n"
+		"//\n"
+		"// [!] WARNING: DO NOT enable this unless you trust the Phex server\n"
+		"//              administrator with your email address!\n"
+		"//\n"
+		"// [!] YUMHACK WARNING : This enables seeing the phex chat output\n"
+		"//                       and seeing Yumlife players names rendered\n"
+		"//                       on their character. We send a random lifeid\n"
+		"//                       to the phex server, so there is a high chance\n"
+		"//                       this will get you banned from phex.\n"
+		"//                       Enable at your own risk.\n";
+	yumConfig::registerSetting("phex_send_email", phexSendEmail, {preComment: phexSendEmailComment});
 	yumConfig::registerSetting("send_keyevents", sendKeyEvents, {savePredicate: []() { return sendKeyEvents; }});
 	yumConfig::registerSetting("drawbiomeinfo", bDrawBiomeInfo, {savePredicate: []() { return bDrawBiomeInfo; }});
 

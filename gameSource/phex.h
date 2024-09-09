@@ -337,12 +337,14 @@ public:
 	static void serverCmdSEND_POSITION(std::vector<std::string> input);
 	static void serverCmdHASH_SERVER_LIFE(std::vector<std::string> input);
 	static void serverCmdGET_ALL_PLAYERS(std::vector<std::string> input);
+	static void serverCmdJASON_AUTH(std::vector<std::string> input);
 
 	static void chatCmdHELP(std::vector<std::string> input);
 	static void chatCmdNAME(std::vector<std::string> input);
 	static void chatCmdLIST(std::vector<std::string> input);
 	static void chatCmdBLOCK(std::vector<std::string> input);
 	static void chatCmdLIFE(std::vector<std::string> input);
+	static void chatCmdOPTIN(std::vector<std::string> input);
 	static void chatCmdTEST(std::vector<std::string> input);
 
 	static void setArray(float arrDst[], const float arrSrc[], int size);

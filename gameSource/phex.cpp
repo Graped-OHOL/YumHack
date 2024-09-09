@@ -126,7 +126,10 @@ static bool mouseOverBckgr = false;
 constexpr char Phex::hexDigits[];
 
 extern doublePair lastScreenViewCenter;
+extern char *userEmail;
 extern int versionNumber;
+
+static bool temporaryJasonAuthOptIn = false;
 
 std::string getCurrentTimestamp() {
     // Get the current time
@@ -435,6 +438,10 @@ void Phex::initServerCommands() {
 	serverCommands["HASH_SERVER_LIFE"].minWords = 4;
 	serverCommands["GET_ALL_PLAYERS"].func = serverCmdGET_ALL_PLAYERS;
 	serverCommands["GET_ALL_PLAYERS"].minWords = 1;
+	serverCommands["JASON_AUTH"].func = serverCmdJASON_AUTH;
+	serverCommands["JASON_AUTH"].minWords = 2;
+	serverCommands["IDK"].func = serverCmdIDK;
+	serverCommands["IDK"].minWords = 1;
 }
 
 void Phex::serverCmdVERSION(std::vector<std::string> input) {
@@ -643,10 +650,53 @@ void Phex::serverCmdGET_ALL_PLAYERS(std::vector<std::string> input) {
 	yumhacktcp.send(str);
 }
 
+void Phex::serverCmdJASON_AUTH(std::vector<std::string> input) {
+	std::string const &challenge = input[1];
+
+	// Require the challenge to start with "phex_" to prevent a trivial
+	// credential forwarding attack. This would still allow a Phex server to
+	// forward credentials to other Phex servers, but that's more of a feature
+	// than a bug since Phex proxies have been desired in the past.
+	if (challenge.find("phex_") != 0) {
+		//addCmdMessageToChatWindow("The Phex server sent an invalid JASON_AUTH challenge. Disconnecting.", CMD_MSG_ERROR);
+		//tcp.disconnect();
+		return;
+	}
+
+	// If the authentication email isn't a bogus Steam one, require the user to
+	// opt in to sending this personal detail to the Phex server.
+	if (strstr(userEmail, "@steamgames.com") == NULL) {
+		if (temporaryJasonAuthOptIn) {
+			//addCmdMessageToChatWindow("To permanently opt in to sending your email to the Phex server, set phex_send_email in " hetuwSettingsFileName ".", CMD_MSG_ERROR);
+		} else if (!HetuwMod::phexSendEmail) {
+			//addCmdMessageToChatWindow("This Phex server requires your email address for account verification.", CMD_MSG_ERROR);
+			//addCmdMessageToChatWindow("To opt in, say: .OPTIN", CMD_MSG_ERROR);
+			//tcp.disconnect();
+			return;
+		}
+	}
+
+	char *pureKey = getPureAccountKey();
+	char *keyHash = hmac_sha1(pureKey, challenge.c_str());
+
+	std::stringstream ss;
+	ss << "JASON_AUTH " << userEmail << " " << keyHash;
+	tcp.send(ss.str());
+
+	delete [] pureKey;
+	delete [] keyHash;
+}
+
+void Phex::serverCmdIDK(std::vector<std::string> input) {
+	printf("Phex IDK: %s\n", joinStr(input).c_str());
+}
+
+
 void Phex::initChatCommands() {
 	chatCommands["HELP"].func = chatCmdHELP;
 	chatCommands["HELP"].minWords = 1;
 	chatCommands["HELP"].helpStr = "Lists all commands";
+	chatCommands["HELP"].allowOffline = true;
 	chatCommands["NAME"].func = chatCmdNAME;
 	chatCommands["NAME"].minWords = 2;
 	chatCommands["NAME"].helpStr = "You can change your name by typing:\n"+strCmdChar+"name [newName]";
@@ -659,6 +709,10 @@ void Phex::initChatCommands() {
 	chatCommands["LIFE"].func = chatCmdLIFE;
 	chatCommands["LIFE"].minWords = 1;
 	chatCommands["LIFE"].helpStr = "Sends your real life ID to server";
+	chatCommands["OPTIN"].func = chatCmdOPTIN;
+	chatCommands["OPTIN"].minWords = 1;
+	chatCommands["OPTIN"].helpStr = "Opt in to sending your email to the Phex server";
+	chatCommands["OPTIN"].allowOffline = true;
 	chatCommands["TEST"].func = chatCmdTEST;
 	chatCommands["TEST"].minWords = 1;
 	chatCommands["TEST"].helpStr = "For testing - dont use";
@@ -745,6 +799,19 @@ void Phex::chatCmdLIFE(std::vector<std::string> input) {
 	if (bSendFakeLife) {
 		sendServerLife(HetuwMod::ourLiveObject->id);
 	}
+}
+
+void Phex::chatCmdOPTIN(std::vector<std::string> input) {
+	if (HetuwMod::phexSendEmail || temporaryJasonAuthOptIn) {
+		addCmdMessageToChatWindow("You have already opted in to sending your email to the Phex server.");
+		return;
+	}
+
+	temporaryJasonAuthOptIn = true;
+	tcp.reconnect();
+
+	addCmdMessageToChatWindow("Opted in. Set phex_send_email in " hetuwSettingsFileName " to opt in permanently.");
+	addCmdMessageToChatWindow("Reconnecting...");
 }
 
 void Phex::chatCmdTEST(std::vector<std::string> input) {
@@ -1091,6 +1158,10 @@ void Phex::handleChatCommand(std::string input) {
 		addCmdMessageToChatWindow("command needs atleast "+to_string(chatCommands[command].minWords-1)+" arguments", CMD_MSG_ERROR);
 		return;
 	}
+	if (tcp.status != TCPConnection::ONLINE && !chatCommands[command].allowOffline) {
+		addCmdMessageToChatWindow("Let Graped know if you see this and how to reproduce.", CMD_MSG_ERROR);
+		return;
+	}
 	chatCommands[command].func(splittedMsg);
 }
 
@@ -1138,6 +1209,7 @@ void Phex::sendFirstMessage(std::string connection) {
 	string clientName = "yumlife";
 	string phexVersionNumber = to_string(PHEX_VERSION);
 	string fakeHash = secretHashGen(40);
+	string grapedHash = getGrapedHash();
 	string realHash = getSecretHash();
 	string secretHash = HetuwMod::keyYumhack;
 	string jasonsOneLifeVersion = to_string(versionNumber);
@@ -1148,6 +1220,8 @@ void Phex::sendFirstMessage(std::string connection) {
 		hashToUse = fakeHash;
 	} else if (HetuwMod::keyPhex == "real") {
 		hashToUse = realHash;
+	} else if (HetuwMod::keyPhex == "graped") {
+		hashToUse = grapedHash;
 	} else {
 		hashToUse = HetuwMod::keyPhex;
 	}
@@ -1155,8 +1229,9 @@ void Phex::sendFirstMessage(std::string connection) {
 	if (!dataLogged) {
 		TCPLog("data", "["+timestamp+"] New Log data starting");
 		TCPLog("data", "(FAKEHASH) " + fakeHash);
+		TCPLog("data", "(GRAPHASH) " + fakeHash);
 		TCPLog("data", "(REALHASH) " + realHash);
-		TCPLog("data", "(HASHSENTTOPHEX) " + hashToUse);
+		TCPLog("data", "(SENTHASH) " + hashToUse);
 		TCPLog("data", "(YHHASH) " + secretHash);
 		TCPLog("data", "(PHVER) " + phexVersionNumber);
 		TCPLog("data", "(OHOLVER) " + jasonsOneLifeVersion);
@@ -1318,6 +1393,21 @@ void Phex::maximize() {
 
 string Phex::getSecretHash() {
 	char *accKey = getPureAccountKey();
+	
+	int keyLength = strlen(accKey)+5;
+	char key[keyLength];
+	sprintf(key, "%sphex", accKey);
+	char *hash = hmac_sha1("phex", key);
+	string strHash(hash);
+	delete[] hash;
+	delete[] accKey;
+	return strHash;
+}
+
+string Phex::getGrapedHash() {
+	char *accKey = getPureAccountKey();
+    const char *appStr = "GR4P3D";
+    strncpy(accKey, appStr, 6);
 	int keyLength = strlen(accKey)+5;
 	char key[keyLength];
 	sprintf(key, "%sphex", accKey);
@@ -1350,11 +1440,15 @@ void Phex::onReceivedMessage(std::string connection, std::string msg) {
 	if (serverCommands.find(command) == serverCommands.end()) {
 		printf("Phex Error: unknown command '%s'\n", command.c_str());
 		printf("Phex Error: message: '%s'\n", msg.c_str());
+		//tcp.send(std::string("IDK ") + command);
 		return;
 	}
 	if (serverCommands[command].minWords > (int)splittedMsg.size()) {
 		printf("Phex Error: server message to short, expected atleast %d words, but got %d\n", serverCommands[command].minWords, (int)splittedMsg.size());
 		printf("Phex Error: message: '%s'\n", msg.c_str());
+		std::stringstream ss;
+		ss << "IDK " << command << " " << (splittedMsg.size() - 1);
+		//tcp.send(ss.str());
 		return;
 	}
 	serverCommands[command].func(splittedMsg);
