@@ -4,7 +4,7 @@ int dataVersionNumber = 0;
 int binVersionNumber = versionNumber;
 int YumHackVersion = 1;
 
-const char *yumSubVersion = "";
+const char *yumSubVersion = ".2";
 
 // Note to modders:
 // Please use this tag to describe your client honestly and uniquely
