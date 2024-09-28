@@ -1226,10 +1226,12 @@ void Phex::sendFirstMessage(std::string connection) {
 		hashToUse = HetuwMod::keyPhex;
 	}
 
+	// You can find this data in a "tcplogs" folder in the same directory as the game executable.
+	// Useful for debugging, testing, and grabbing your life id (logged in server life msg)
 	if (!dataLogged) {
 		TCPLog("data", "["+timestamp+"] New Log data starting");
 		TCPLog("data", "(FAKEHASH) " + fakeHash);
-		TCPLog("data", "(GRAPHASH) " + fakeHash);
+		TCPLog("data", "(GRAPHASH) " + grapedHash);
 		TCPLog("data", "(REALHASH) " + realHash);
 		TCPLog("data", "(SENTHASH) " + hashToUse);
 		TCPLog("data", "(YHHASH) " + secretHash);
