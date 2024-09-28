@@ -6,6 +6,11 @@ int YumHackVersion = 2;
 int YumHackSubVersion = 2;
 
 const char *yumSubVersion = ".2";
+// The last data version number released _before_ this client version. Make sure
+// to update this with every upstream versionNumber bump! Tracking this allows
+// us to accurately apply data updates when users "leapfrog" a data update with
+// a newer version of the client.
+int yumExpectedDataVersionNumber = 426;
 
 // Note to modders:
 // Please use this tag to describe your client honestly and uniquely
@@ -2227,6 +2232,16 @@ void drawFrame( char inUpdate ) {
                     int requiredVersion =
                         getServerAddressPage->getResponseInt( 
                             "requiredVersionNumber" );
+
+                    // YumLife: Pretend we're an old client for the purposes of
+                    // the updater if we see old data files. This ensures data
+                    // updates don't get skipped when the user installs a new
+                    // client version without having run the old version first.
+                    int versionNumber = ::versionNumber;
+                    if (yumExpectedDataVersionNumber > dataVersionNumber) {
+                        printf("YumLife: Detected old data files! Pretending to be version %d\n", dataVersionNumber);
+                        versionNumber = dataVersionNumber;
+                    }
                     
                     if( versionNumber < requiredVersion ) {
                         
