@@ -3,9 +3,9 @@ int dataVersionNumber = 0;
 
 int binVersionNumber = versionNumber;
 int YumHackVersion = 2;
-int YumHackSubVersion = 3;
+int YumHackSubVersion = 4;
 
-const char *yumSubVersion = ".4";
+const char *yumSubVersion = ".5";
 // The last data version number released _before_ this client version. Make sure
 // to update this with every upstream versionNumber bump! Tracking this allows
 // us to accurately apply data updates when users "leapfrog" a data update with
@@ -2238,7 +2238,7 @@ void drawFrame( char inUpdate ) {
                     // updates don't get skipped when the user installs a new
                     // client version without having run the old version first.
                     int versionNumber = ::versionNumber;
-                    if (yumExpectedDataVersionNumber > dataVersionNumber) {
+                    if (!isAHAP && yumExpectedDataVersionNumber > dataVersionNumber) {
                         printf("YumLife: Detected old data files! Pretending to be version %d\n", dataVersionNumber);
                         versionNumber = dataVersionNumber;
                     }
