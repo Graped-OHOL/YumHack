@@ -1,6 +1,6 @@
 # What's this?
 
-YumLife is a mod for OHOL and AHAP based on [hetuw](https://github.com/hetuw/OneLife).
+YumHack is a mod for OHOL and AHAP based on [hetuw](https://github.com/hetuw/OneLife).
 The goals of this mod are to stay up to date with the latest changes to the vanilla
 OHOL and AHAP client, fix bugs, and occasionally add useful features.
 
@@ -10,13 +10,13 @@ OHOL and AHAP client, fix bugs, and occasionally add useful features.
 
 1. Make sure the game is fully updated in Steam.
 2. Run the game from Steam once to ensure the Steam login details are properly set up.
-3. Download the latest version of the mod from [the Releases page](https://github.com/selb/YumLife/releases). For Windows, this is YumHack.exe.
+3. Download the latest version of the mod from [the Releases page](https://github.com/selb/YumHack/releases). For Windows, this is YumHack.exe.
 4. Install the mod into the OHOL/AHAP installation folder (Steam users: right click game > Manage > Browse local files)
 5. Run the mod from the OHOL/AHAP installation folder.
 
 ## Direct download users:
 
-1. Download the latest version of the mod from [the Releases page](https://github.com/selb/YumLife/releases). For Windows, this is YumLife_windows.exe.
+1. Download the latest version of the mod from [the Releases page](https://github.com/selb/YumHack/releases). For Windows, this is YumHack_windows.exe.
 2. Install the mod into the OHOL/AHAP installation folder (same folder as the vanilla `OneLife.exe`).
 3. Run the mod from the OHOL/AHAP installation folder.
 
@@ -33,7 +33,7 @@ If using Steam, launch Steam and make sure there isn't a pending update on the
 base game.
 
 Non-Steam installs will generally update themselves properly, but older installs
-may have subtly corrupt data files due to the way YumLife/hetuw updating used to
+may have subtly corrupt data files due to the way YumHack/hetuw updating used to
 work. See Reinstall below.
 
 ## Clear cache files
@@ -162,7 +162,7 @@ MSYS, distributing this .exe is not recommended.
 # Merging upstream changes
 
 First, set up remotes for Jason's OneLife and minorGems repos. This only needs to be
-done once. Note that upstream OHOL is two repos, which YumLife condenses into one for
+done once. Note that upstream OHOL is two repos, which YumHack condenses into one for
 easier forking.
 
 ```
@@ -177,5 +177,5 @@ Similarly, the minorGems repo can be merged with `git pull minorGems master`. No
 will need to move (as in `git mv`) any _new_ files added to that repo into the `minorGems`
 directory.
 
-Since YumLife uses CMake instead of Jason's build scripts, manual updates to `CMakeLists.txt`
+Since YumHack uses CMake instead of Jason's build scripts, manual updates to `CMakeLists.txt`
 are needed when upstream source files are added, removed, or moved.
